@@ -7,22 +7,21 @@ class UserHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    File pngFile = File('../../assert/defaultUser.png');
-
-
+    
     return Container(
       width: double.maxFinite,
       height: 200,
-      // gradient color from #0D1117 to #282C34
-
       // contain a avatar and a text "User"
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: pngFile.existsSync() ? FileImage(pngFile) : null,
+          // use icon person_fill
+          const Icon(
+            Icons.person,
+            size: 100,
+            color: Color.fromARGB(255, 100, 100, 100),
           ),
+
           const SizedBox(height: 10),
           const Text(
             'User',

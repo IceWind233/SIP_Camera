@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_app/Utils/toast.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/riverpod.dart';
 
 import 'Camera.dart';
 import 'Gallary.dart';
 import 'Profiles.dart';
 
 import '../Utils/handleDrag.dart';
+import '../Utils/toast.dart';
 
 
 class MainPage extends StatefulWidget {
