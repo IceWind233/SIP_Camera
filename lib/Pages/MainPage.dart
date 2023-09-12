@@ -11,19 +11,20 @@ import 'Profiles.dart';
 import '../Utils/handleDrag.dart';
 import '../Utils/toast.dart';
 
-
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   //create state
   @override
-  _MainPageState createState() =>  _MainPageState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+const mainPageFontSize = 30.0;
 
+class _MainPageState extends State<MainPage> {  
   bool menuOpen = false;
-  bool isHorizontalDrag = false;
+  bool isDragging = false;
+
   Dragger dragger = Dragger();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -35,28 +36,20 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  void handleVerticalDragEnd(){
-    dragger.handleDragEnd(
-      () {
-        navigateTo(Camera());
-      },
-      () {
-        navigateTo(Gallary());
-      },
-      100.0
-    );
+  void handleVerticalDragEnd() {
+    dragger.handleDragEnd(() {
+      navigateTo(Camera());
+    }, () {
+      navigateTo(Gallary());
+    }, 100.0);
   }
 
-  void handleHorizonDragEnd(){
-    dragger.handleDragEnd(
-      () {
-        _scaffoldKey.currentState!.openDrawer();
-      },
-      () {
-        _scaffoldKey.currentState!.openEndDrawer();
-      },
-      50.0
-    );
+  void handleHorizonDragEnd() {
+    dragger.handleDragEnd(() {
+      _scaffoldKey.currentState!.openDrawer();
+    }, () {
+      _scaffoldKey.currentState!.openEndDrawer();
+    }, 50.0);
   }
 
   void toggleMenu(bool menuState) {
@@ -67,19 +60,37 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double windowWidth = MediaQuery.of(context).size.width;
+    final double windowHeight = MediaQuery.of(context).size.height - 81;
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('SIP Camera'),
       ),
-      drawer:  const Drawer(child: Profiles()),
+      drawer: const Drawer(child: Profiles()),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         child: Container(
           width: double.infinity,
           height: double.infinity,
           alignment: Alignment.center,
-          child: const Text('This is SIP Camera'),
+          // a column contains 2 roundrect with different color and a text
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              dragger.getDragDistance() >= 0 ? DragBox(
+                str: 'Drag UP to Camera',
+                backgroundColor: isDragging ? const Color.fromARGB(0xff, 0x1c, 0x1c, 0x1c) : Colors.red,
+                width: isDragging ? windowWidth : 300,
+                height: isDragging ? windowHeight : 200) : const SizedBox.shrink(),
+
+              dragger.getDragDistance() <= 0 ? DragBox(str: 'Drag DOWN to Gallary',
+                backgroundColor: isDragging ? const Color.fromARGB(0xff, 0x1c, 0x1c, 0x1c) : Colors.blue,
+                width: isDragging ? windowWidth : 300,
+                height: isDragging ? windowHeight : 200) : const SizedBox.shrink(),
+            ],
+          ),
         ),
 
         onHorizontalDragStart: (details) {
@@ -87,6 +98,7 @@ class _MainPageState extends State<MainPage> {
         },
 
         onHorizontalDragUpdate: (details) {
+          print("==>${dragger.getDragDistance()}");
           dragger.handleDragUpdate(details.globalPosition.dx);
         },
 
@@ -95,6 +107,9 @@ class _MainPageState extends State<MainPage> {
         },
 
         onVerticalDragStart: (details) {
+          setState(() {
+            isDragging = true;
+          });
           dragger.handleDragStart(details.globalPosition.dy);
         },
 
@@ -103,30 +118,54 @@ class _MainPageState extends State<MainPage> {
         },
 
         onVerticalDragEnd: (details) {
+          setState(() {
+            isDragging = false;
+          });
           handleVerticalDragEnd();
         },
-        
       ),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          FloatingActionButton(
-            heroTag: null,
-            onPressed: () {
-              navigateTo(Camera());
-            },
-            child: const Icon(Icons.camera_alt),
-          ),
+    );
+  }
+}
 
-          FloatingActionButton(
-            heroTag: null,
-            onPressed: () {
-              navigateTo(Gallary());
-            },
-            child: const Icon(Icons.photo_library),
+class DragBox extends StatelessWidget {
+  DragBox({
+    Key? key,
+    required this.str,
+    required this.backgroundColor,
+    required this.width,
+    required this.height,
+  }) : super(key: key);
+
+  String str;
+  Color backgroundColor;
+  double width;
+  double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            str,
+            style: const TextStyle(
+              fontSize: mainPageFontSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ],
-      ),
+      )
     );
   }
 }

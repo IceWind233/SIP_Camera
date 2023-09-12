@@ -23,6 +23,7 @@ class Dragger{
     } else if(dragDistance < -threshold){
       downLambda();
     }
+    dragDistance = 0;
   }
 
 

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class Setting extends StatefulWidget{
@@ -6,6 +5,9 @@ class Setting extends StatefulWidget{
   @override
   _SettingState createState() => _SettingState();
 }
+
+// TODO: 1. Select quliaity of the image
+// TODO: to be continued
 
 class _SettingState extends State<Setting>{
 
