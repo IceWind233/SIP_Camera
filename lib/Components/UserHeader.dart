@@ -10,7 +10,6 @@ class UserHeader extends StatelessWidget {
     
     return Container(
       width: double.maxFinite,
-      height: 200,
       // contain a avatar and a text "User"
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

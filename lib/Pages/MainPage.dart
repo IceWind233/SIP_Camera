@@ -22,27 +22,28 @@ class MainPage extends StatefulWidget {
 const mainPageFontSize = 30.0;
 
 class _MainPageState extends State<MainPage> {  
+  final double defaultBoxWidth = 300;
+  final double defaultBoxHeight = 200;
+  double boxWidth = 300;
+  double boxHeight = 200;
+
   bool menuOpen = false;
   bool isDragging = false;
+
+  final bodyColor = const Color.fromARGB(0xff, 0x1c, 0x1c, 0x1c);
+
+  final List<Color> defaultBoxColor = [
+    const Color.fromARGB(0xff, 0xf4, 0x42, 0x35),
+    const Color.fromARGB(0xff, 0x22, 0x96, 0xf3)
+  ];
+  List<Color> boxColor = [
+    const Color.fromARGB(0xff, 0xf4, 0x42, 0x35),
+    const Color.fromARGB(0xff, 0x22, 0x96, 0xf3)
+  ];
 
   Dragger dragger = Dragger();
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  void navigateTo(var page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
-  }
-
-  void handleVerticalDragEnd() {
-    dragger.handleDragEnd(() {
-      navigateTo(Camera());
-    }, () {
-      navigateTo(Gallary());
-    }, 100.0);
-  }
 
   void handleHorizonDragEnd() {
     dragger.handleDragEnd(() {
@@ -58,10 +59,73 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  List<int> getColorDiff(Color curColor, Color defaultColor) {
+    return [
+      curColor.red - defaultColor.red,
+      curColor.green - defaultColor.green,
+      curColor.blue - defaultColor.blue
+    ];
+  }
+
+  Color caculateColor(Color defaultColor, List<int> colorDiff, double dragRatio) {
+    return Color.fromARGB(
+      0xff,
+      (defaultColor.red + colorDiff[0] * dragRatio).toInt(),
+      (defaultColor.green + colorDiff[1] * dragRatio).toInt(),
+      (defaultColor.blue + colorDiff[2] * dragRatio).toInt(),
+    );
+  }
+
+  
+  void resetDragBox() {
+    setState(() {
+      boxWidth = defaultBoxWidth;
+      boxHeight = defaultBoxHeight;
+      boxColor[0] = defaultBoxColor[0];
+      boxColor[1] = defaultBoxColor[1];
+    });
+  }
+
+  void navigateTo(var page) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page)
+    ).then((value) {
+      resetDragBox();
+    });
+  }
+
+  void handleVerticalDragEnd() {
+    dragger.handleDragEnd(() {
+      navigateTo(Camera());
+    }, () {
+      navigateTo(Gallary());
+    }, 100.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final double windowWidth = MediaQuery.of(context).size.width;
     final double windowHeight = MediaQuery.of(context).size.height - 81;
+
+    void setDragBox() {
+      final distance = dragger.getDragDistance();
+      final dragRatio = distance / windowHeight;
+      final widthDiff = windowWidth - defaultBoxWidth;
+      final heightDiff = windowHeight - defaultBoxHeight;
+
+      final List<List<int>> colorDiff = [
+        getColorDiff(boxColor[0], bodyColor),
+        getColorDiff(boxColor[1], bodyColor),
+      ];
+
+      setState(() {
+        boxColor[0] = caculateColor(boxColor[0], colorDiff[0], dragRatio);
+        boxColor[1] = caculateColor(boxColor[1], colorDiff[1], dragRatio);
+        boxWidth = defaultBoxWidth + (widthDiff * dragRatio).abs();
+        boxHeight = defaultBoxHeight + (heightDiff * dragRatio).abs();
+      });
+    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -81,14 +145,15 @@ class _MainPageState extends State<MainPage> {
             children: [
               dragger.getDragDistance() >= 0 ? DragBox(
                 str: 'Drag UP to Camera',
-                backgroundColor: isDragging ? const Color.fromARGB(0xff, 0x1c, 0x1c, 0x1c) : Colors.red,
-                width: isDragging ? windowWidth : 300,
-                height: isDragging ? windowHeight : 200) : const SizedBox.shrink(),
+                backgroundColor: boxColor[0],
+                width: boxWidth,
+                height: boxHeight) : const SizedBox.shrink(),
 
-              dragger.getDragDistance() <= 0 ? DragBox(str: 'Drag DOWN to Gallary',
-                backgroundColor: isDragging ? const Color.fromARGB(0xff, 0x1c, 0x1c, 0x1c) : Colors.blue,
-                width: isDragging ? windowWidth : 300,
-                height: isDragging ? windowHeight : 200) : const SizedBox.shrink(),
+              dragger.getDragDistance() <= 0 ? DragBox(
+                str: 'Drag DOWN to Gallary',
+                backgroundColor: boxColor[1],
+                width: boxWidth,
+                height: boxHeight) : const SizedBox.shrink(),
             ],
           ),
         ),
@@ -98,7 +163,6 @@ class _MainPageState extends State<MainPage> {
         },
 
         onHorizontalDragUpdate: (details) {
-          print("==>${dragger.getDragDistance()}");
           dragger.handleDragUpdate(details.globalPosition.dx);
         },
 
@@ -115,12 +179,14 @@ class _MainPageState extends State<MainPage> {
 
         onVerticalDragUpdate: (details) {
           dragger.handleDragUpdate(details.globalPosition.dy);
+          setDragBox();
         },
 
         onVerticalDragEnd: (details) {
           setState(() {
             isDragging = false;
           });
+
           handleVerticalDragEnd();
         },
       ),
@@ -151,7 +217,7 @@ class DragBox extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(10),
       ),
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 5),
       curve: Curves.easeInOut,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

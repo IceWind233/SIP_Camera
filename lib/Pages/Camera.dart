@@ -1,5 +1,11 @@
-
 import 'package:flutter/material.dart';
+
+import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
+
+import 'package:flutter_app/Pages/ImgProc.dart';
+import 'package:flutter_app/Components/Media.dart';
+import 'package:flutter_app/Components/CamToolBar.dart';
 import 'package:flutter_app/Utils/handleDrag.dart';
 
 class Camera extends StatefulWidget {
@@ -14,6 +20,13 @@ class _CameraState extends State<Camera> {
 
   void navigateToMainPage() {
     Navigator.pop(context);
+  }
+
+  void navigateToImgProcPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ImgProc())
+    );
   }
 
   void handleVerticalDragEnd(){
@@ -34,11 +47,17 @@ class _CameraState extends State<Camera> {
       ),
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          alignment: Alignment.center,
-          child: const Text('This is the Camera Page'), 
+        child: Stack(
+          children: [
+              Media(),
+              Consumer<CamProfile>(builder: (context, camProfile, child) => Text('${camProfile.zoomValue}'),),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: CamToolBar()
+              ),
+          ],
         ),
 
         onVerticalDragStart: (details) {
@@ -57,9 +76,10 @@ class _CameraState extends State<Camera> {
       floatingActionButton: FloatingActionButton(
         heroTag: null,
         onPressed: () {
-          navigateToMainPage();
+
+          navigateToImgProcPage();
         },
-        child: const Icon(Icons.arrow_back),
+        child: const Icon(Icons.image),
       )
     );
   }

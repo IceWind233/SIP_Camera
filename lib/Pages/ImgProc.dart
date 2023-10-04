@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ImgProc extends StatefulWidget{
+  const ImgProc({super.key});
 
   @override
   _ImgProcState createState() => _ImgProcState();
